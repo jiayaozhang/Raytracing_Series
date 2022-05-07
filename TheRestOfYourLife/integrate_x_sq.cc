@@ -1,13 +1,15 @@
-#include "common/rtweekend.h"
+#include "rtweekend.h"
 
 #include <iostream>
 #include <iomanip>
 #include <math.h>
 #include <stdlib.h>
 
-inline double pdf(double x) {
-    return 3*x*x/8;
+inline double pdf(double x)
+{
+    return 3 * x * x /8 ;
 }
+
 
 int main() {
     int N = 1;

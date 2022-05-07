@@ -1,13 +1,25 @@
 #ifndef BVH_H
 #define BVH_H
+//==============================================================================================
+// Originally written in 2016 by Peter Shirley <ptrshrl@gmail.com>
+//
+// To the extent possible under law, the author(s) have dedicated all copyright and related and
+// neighboring rights to this software to the public domain worldwide. This software is
+// distributed without any warranty.
+//
+// You should have received a copy (see file COPYING.txt) of the CC0 Public Domain Dedication
+// along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//==============================================================================================
 
 #include "rtweekend.h"
 
 #include "hittable.h"
 #include "hittable_list.h"
-#include <algorithm> 
 
-class bvh_node : public hittable {
+#include <algorithm>
+
+
+class bvh_node : public hittable  {
     public:
         bvh_node();
 
@@ -30,20 +42,6 @@ class bvh_node : public hittable {
         aabb box;
 };
 
-bool bvh_node::bounding_box(double time0, double time1, aabb& output_box) const {
-    output_box = box;
-    return true;
-}
-
-bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
-    if (!box.hit(r, t_min, t_max))
-        return false;
-
-    bool hit_left = left->hit(r, t_min, t_max, rec);
-    bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
-
-    return hit_left || hit_right;
-}
 
 inline bool box_compare(const shared_ptr<hittable> a, const shared_ptr<hittable> b, int axis) {
     aabb box_a;
@@ -68,8 +66,9 @@ bool box_z_compare (const shared_ptr<hittable> a, const shared_ptr<hittable> b) 
     return box_compare(a, b, 2);
 }
 
+
 bvh_node::bvh_node(
-    std::vector<shared_ptr<hittable>>& src_objects,
+    const std::vector<shared_ptr<hittable>>& src_objects,
     size_t start, size_t end, double time0, double time1
 ) {
     auto objects = src_objects; // Create a modifiable array of the source scene objects
@@ -108,5 +107,23 @@ bvh_node::bvh_node(
 
     box = surrounding_box(box_left, box_right);
 }
+
+
+bool bvh_node::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
+    if (!box.hit(r, t_min, t_max))
+        return false;
+
+    bool hit_left = left->hit(r, t_min, t_max, rec);
+    bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+
+    return hit_left || hit_right;
+}
+
+
+bool bvh_node::bounding_box(double time0, double time1, aabb& output_box) const {
+    output_box = box;
+    return true;
+}
+
 
 #endif

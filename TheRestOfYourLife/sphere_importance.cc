@@ -1,4 +1,5 @@
-#include "common/rtweekend.h"
+
+#include "rtweekend.h"
 
 #include <iostream>
 #include <iomanip>
