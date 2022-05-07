@@ -1,11 +1,23 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
+//==============================================================================================
+// Originally written in 2016 by Peter Shirley <ptrshrl@gmail.com>
+//
+// To the extent possible under law, the author(s) have dedicated all copyright and related and
+// neighboring rights to this software to the public domain worldwide. This software is
+// distributed without any warranty.
+//
+// You should have received a copy (see file COPYING.txt) of the CC0 Public Domain Dedication
+// along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+//==============================================================================================
 
-#include "ray.h"
 #include "rtweekend.h"
+
 #include "aabb.h"
 
+
 class material;
+
 
 struct hit_record {
     point3 p;
@@ -20,15 +32,46 @@ struct hit_record {
         front_face = dot(r.direction(), outward_normal) < 0;
         normal = front_face ? outward_normal :-outward_normal;
     }
-
 };
+
 
 class hittable {
     public:
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
         virtual bool bounding_box(double time0, double time1, aabb& output_box) const = 0;
 
+        virtual double pdf_value(const vec3& o, const vec3& v) const {
+            return 0.0;
+        }
+
+        virtual vec3 random(const vec3& o) const {
+            return vec3(1,0,0);
+        }
 };
+
+
+class flip_face : public hittable {
+    public:
+        flip_face(shared_ptr<hittable> p) : ptr(p) {}
+
+        virtual bool hit(
+            const ray& r, double t_min, double t_max, hit_record& rec) const override {
+
+            if (!ptr->hit(r, t_min, t_max, rec))
+                return false;
+
+            rec.front_face = !rec.front_face;
+            return true;
+        }
+
+        virtual bool bounding_box(double time0, double time1, aabb& output_box) const override {
+            return ptr->bounding_box(time0, time1, output_box);
+        }
+
+    public:
+        shared_ptr<hittable> ptr;
+};
+
 
 class translate : public hittable {
     public:
@@ -45,6 +88,7 @@ class translate : public hittable {
         vec3 offset;
 };
 
+
 bool translate::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     ray moved_r(r.origin() - offset, r.direction(), r.time());
     if (!ptr->hit(moved_r, t_min, t_max, rec))
@@ -56,6 +100,7 @@ bool translate::hit(const ray& r, double t_min, double t_max, hit_record& rec) c
     return true;
 }
 
+
 bool translate::bounding_box(double time0, double time1, aabb& output_box) const {
     if (!ptr->bounding_box(time0, time1, output_box))
         return false;
@@ -66,6 +111,7 @@ bool translate::bounding_box(double time0, double time1, aabb& output_box) const
 
     return true;
 }
+
 
 class rotate_y : public hittable {
     public:
@@ -120,6 +166,7 @@ rotate_y::rotate_y(shared_ptr<hittable> p, double angle) : ptr(p) {
     bbox = aabb(min, max);
 }
 
+
 bool rotate_y::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     auto origin = r.origin();
     auto direction = r.direction();
@@ -149,5 +196,6 @@ bool rotate_y::hit(const ray& r, double t_min, double t_max, hit_record& rec) co
 
     return true;
 }
+
 
 #endif

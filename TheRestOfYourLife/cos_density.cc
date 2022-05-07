@@ -14,24 +14,30 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
-#include <stdlib.h>
 
 
-inline double pdf(double x) {
-    return  3*x*x/8;
+inline vec3 random_cosine_direction() {
+    auto r1 = random_double();
+    auto r2 = random_double();
+    auto z = sqrt(1-r2);
+    auto phi = 2*pi*r1;
+    auto x = cos(phi)*sqrt(r2);
+    auto y = sin(phi)*sqrt(r2);
+
+    return vec3(x, y, z);
 }
 
+
 int main() {
-    int inside_circle = 0;
-    int inside_circle_stratified = 0;
-    int N = 1;
+    int N = 1000000;
 
     auto sum = 0.0;
     for (int i = 0; i < N; i++) {
-        auto x = pow(random_double(0,8), 1./3.);
-        sum += x*x / pdf(x);
+        auto v = random_cosine_direction();
+        sum += v.z()*v.z()*v.z() / (v.z()/(pi));
     }
 
     std::cout << std::fixed << std::setprecision(12);
-    std::cout << "I = " << sum/N << '\n';
+    std::cout << "PI/2 = " << pi/2 << '\n';
+    std::cout << "Estimate = " << sum/N << '\n';
 }
